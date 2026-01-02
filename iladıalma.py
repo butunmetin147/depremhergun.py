@@ -31,7 +31,7 @@ TURKIYE_ILLERI = {
     "VAN","YALOVA","YOZGAT","ZONGULDAK"
 }
 
-
+today = datetime.now()
 
 # -----------------------------
 # Instagram Login (AYNEN SENİN ŞEKLİN)
@@ -48,12 +48,7 @@ except Exception:
 # Ana Fonksiyon
 # -----------------------------
 def gunluk_deprem_reels_olustur_ve_paylas():
-    today = datetime.now()
-    yesterday = today - timedelta(days=1)
-
-    start_dt = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0, 0)
-    end_dt   = datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59)
-
+    
     try:
         response = requests.get(API_URL, params={"limit": 5000}, timeout=15)
         data = response.json()
@@ -69,27 +64,18 @@ def gunluk_deprem_reels_olustur_ve_paylas():
     il_sayaci = Counter()
 
     for d in data["result"]:
-        
-        dt_str = d.get("date_time")
-        if not dt_str:
-            continue
-
-        deprem_dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-        if not (start_dt <= deprem_dt <= end_dt):
-            continue
 
         title = d.get("title", "")
-        if "(" in title and ")" in title:
-            
-            il = title.split("(")[-1].split(")")[0].strip().upper()
-            if not il:
-                continue
-            if il not in TURKIYE_ILLERI:
-                continue
-            il_sayaci[il] += 1
+        
+        il = title.split("(")[-1].split(")")[0].strip().upper()
+        if not il:
+            continue
+        if il not in TURKIYE_ILLERI:
+            continue
+        il_sayaci[il] += 1
 
     if not il_sayaci:
-        print("⚠️ Dün için deprem yok")
+        print("son 48 saatte deprem yok")
         return
 
     top3 = il_sayaci.most_common(3)
@@ -172,7 +158,7 @@ def gunluk_deprem_reels_olustur_ve_paylas():
     caption = (
         f"KAYDET - PAYLAŞ 👇\n"
         f"📊 Deprem Özeti – {yesterday.strftime('%d.%m.%Y')}\n\n"
-        f"Dünü deprem açısından\n"
+        f"Son 48 Saati deprem açısından\n"
         f"en hareketli geçiren\n"
         f"ilk 3 il 👇\n\n"
         f"#deprem #kandilli #sondakika #reels #depremanaliz"
@@ -191,3 +177,4 @@ print("⏳ Sistem aktif — her gün 00:01'de 10 sn Reels paylaşılacak")
 while True:
     schedule.run_pending()
     time.sleep(1)
+
